@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
-
 class HupadIAP(
     private val activity: AppCompatActivity,
     private val onCLick: (s: String, b: Boolean) -> Unit
