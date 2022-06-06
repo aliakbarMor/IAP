@@ -1,42 +1,52 @@
 package com.example.hupad_iap
+
+import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Intent
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
-class HupadIAP {
-    companion object {
-        private const val TAG = "HUPAD_IAP"
 
-        fun iapOnClick(activity: AppCompatActivity, productId: String) {
-            Log.d(TAG, "iapOnClick: testttttttttttttt")
-
-            val resultLauncher =
-                activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                    Log.d(TAG, "resultCode: ${result.resultCode}")
-                    if (result.resultCode == 521378) {
-                        val data: Intent? = result.data
-                        Log.d(TAG, data?.getStringExtra("appName").toString())
-                        Log.d(TAG, data?.getStringExtra("packageName").toString())
-                        Log.d(TAG, data?.getStringExtra("productId").toString())
-                    }
-                }
-            val intent = Intent(Intent.ACTION_MAIN).apply {
-                component = ComponentName(
-                    "com.example.hupad_market",
-                    "com.example.hupad_market.IAPActivity"
+class HupadIAP(
+    private val activity: AppCompatActivity,
+    private val onCLick: (s: String, b: Boolean) -> Unit
+) {
+    private val resultLauncher =
+        activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == 521378) {
+                val data: Intent? = result.data
+                onCLick.invoke(
+                    data?.getStringExtra("productId") ?: "",
+                    data?.getBooleanExtra("result", false)!!
                 )
-                putExtra(
-                    "appName",
-                    activity.applicationInfo.loadLabel(activity.packageManager).toString()
-                )
-                putExtra("packageName", activity.packageName)
-                putExtra("productId", productId)
             }
-            resultLauncher.launch(intent);
+        }
+
+
+    fun iapOnClick(productId: String) {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            component = ComponentName(
+                "com.example.hupad_market",
+                "com.example.hupad_market.IAPActivity"
+            )
+            putExtra(
+                "appName",
+                activity.applicationInfo.loadLabel(activity.packageManager).toString()
+            )
+            putExtra("packageName", activity.packageName)
+            putExtra("productId", productId)
+        }
+
+        try {
+            resultLauncher.launch(intent)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(
+                activity,
+                "Hupad store is not installed on this device",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
-
 
 }
